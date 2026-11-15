@@ -1,176 +1,64 @@
 
-import java.util.*;
+import java.io.*;
+
+// Student class
+class Student implements Serializable {
+
+    int id;
+    String name;
+    String department;
+
+    Student(int id, String name, String department) {
+        this.id = id;
+        this.name = name;
+        this.department = department;
+    }
+
+    void display() {
+        System.out.println("Student ID: " + id);
+        System.out.println("Student Name: " + name);
+        System.out.println("Department: " + department);
+    }
+}
 
 public class Main {
 
-    // Student class
-    static class Student {
-        int studentId;
-        String studentName;
-        String department;
-        String email;
-
-        Student(int id, String name, String dept, String email) {
-            this.studentId = id;
-            this.studentName = name;
-            this.department = dept;
-            this.email = email;
-        }
-
-        void display() {
-            System.out.println("ID: " + studentId);
-            System.out.println("Name: " + studentName);
-            System.out.println("Department: " + department);
-            System.out.println("Email: " + email);
-            System.out.println("----------------------");
-        }
-    }
-
-    // DAO interface
-    interface Dao<T, K> {
-        void insert(T obj);
-        T findById(K id);
-        List<T> findAll();
-        void update(T obj);
-        void delete(K id);
-    }
-
-    // Student DAO implementation
-    static class StudentDao implements Dao<Student, Integer> {
-
-        ArrayList<Student> students = new ArrayList<>();
-
-        public void insert(Student s) {
-            students.add(s);
-            System.out.println("Student inserted successfully.");
-        }
-
-        public Student findById(Integer id) {
-            for (Student s : students) {
-                if (s.studentId == id) {
-                    return s;
-                }
-            }
-            return null;
-        }
-
-        public List<Student> findAll() {
-            return students;
-        }
-
-        public void update(Student s) {
-            Student old = findById(s.studentId);
-
-            if (old != null) {
-                old.studentName = s.studentName;
-                old.department = s.department;
-                old.email = s.email;
-                System.out.println("Student updated successfully.");
-            } else {
-                System.out.println("Student not found.");
-            }
-        }
-
-        public void delete(Integer id) {
-            Student s = findById(id);
-
-            if (s != null) {
-                students.remove(s);
-                System.out.println("Student deleted successfully.");
-            } else {
-                System.out.println("Student not found.");
-            }
-        }
-    }
-
     public static void main(String[] args) {
 
-        Scanner sc = new Scanner(System.in);
-        StudentDao dao = new StudentDao();
+        try {
+            // Creating student object
+            Student s1 = new Student(101, "Arun", "CSE");
 
-        while (true) {
-            System.out.println("\n--- STUDENT MANAGEMENT ---");
-            System.out.println("1. Insert Student");
-            System.out.println("2. Find Student");
-            System.out.println("3. Display All Students");
-            System.out.println("4. Update Student");
-            System.out.println("5. Delete Student");
-            System.out.println("6. Exit");
-            System.out.print("Enter choice: ");
+            // Serialization
+            FileOutputStream fout =
+                new FileOutputStream("student.txt");
 
-            int choice = sc.nextInt();
-            sc.nextLine();
+            ObjectOutputStream out =
+                new ObjectOutputStream(fout);
 
-            switch (choice) {
+            out.writeObject(s1);
+            out.close();
+            fout.close();
 
-                case 1:
-                    System.out.print("Enter ID: ");
-                    int id = sc.nextInt();
-                    sc.nextLine();
+            System.out.println("Serialization completed.");
 
-                    System.out.print("Enter Name: ");
-                    String name = sc.nextLine();
+            // Deserialization
+            FileInputStream fin =
+                new FileInputStream("student.txt");
 
-                    System.out.print("Enter Department: ");
-                    String dept = sc.nextLine();
+            ObjectInputStream in =
+                new ObjectInputStream(fin);
 
-                    System.out.print("Enter Email: ");
-                    String email = sc.nextLine();
+            Student s2 = (Student) in.readObject();
 
-                    dao.insert(new Student(id, name, dept, email));
-                    break;
+            in.close();
+            fin.close();
 
-                case 2:
-                    System.out.print("Enter Student ID: ");
-                    int searchId = sc.nextInt();
+            System.out.println("\nDeserialized Student Details:");
+            s2.display();
 
-                    Student result = dao.findById(searchId);
-
-                    if (result != null) {
-                        result.display();
-                    } else {
-                        System.out.println("Student not found.");
-                    }
-                    break;
-
-                case 3:
-                    for (Student s : dao.findAll()) {
-                        s.display();
-                    }
-                    break;
-
-                case 4:
-                    System.out.print("Enter ID to update: ");
-                    int updateId = sc.nextInt();
-                    sc.nextLine();
-
-                    System.out.print("Enter New Name: ");
-                    String newName = sc.nextLine();
-
-                    System.out.print("Enter New Department: ");
-                    String newDept = sc.nextLine();
-
-                    System.out.print("Enter New Email: ");
-                    String newEmail = sc.nextLine();
-
-                    dao.update(new Student(updateId, newName,
-                            newDept, newEmail));
-                    break;
-
-                case 5:
-                    System.out.print("Enter ID to delete: ");
-                    int deleteId = sc.nextInt();
-                    dao.delete(deleteId);
-                    break;
-
-                case 6:
-                    System.out.println("Program terminated.");
-                    sc.close();
-                    return;
-
-                default:
-                    System.out.println("Invalid choice.");
-            }
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("Error: " + e.getMessage());
         }
     }
 }
